@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>K&D Minibar Management</title>
-    <link href="https://fonts.googleapis.com/css2?family=Circular:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #FF385C;
             --secondary-color: #00A699;
             --background-color: #F7F7F7;
             --text-color: #484848;
+            --oh-yeah-bg: #FFC0CB;
+            --little-castle-bg: #ADD8E6;
+            --amazing-pool-bg: #90EE90;
         }
 
         * {
@@ -30,47 +32,22 @@
 
         .app-container {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 20px auto;
             display: flex;
             flex-direction: column;
             background-color: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
             padding: 20px;
             text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background-color: white;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .logo-text {
+            color: white;
             font-size: 24px;
             font-weight: bold;
+            border-radius: 10px 10px 0 0;
         }
 
         .content {
@@ -81,37 +58,37 @@
             margin-bottom: 15px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-color);
-            font-weight: 600;
-        }
-
         input, select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #DBDBDB;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-top: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
         }
 
         .btn {
-            display: block;
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 10px;
+            margin-top: 15px;
+            background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 8px;
             font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
             cursor: pointer;
-            margin-top: 15px;
-            transition: transform 0.2s;
+            transition: background 0.2s ease;
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .btn:hover {
+            background: var(--secondary-color);
         }
 
         .invoice {
@@ -133,34 +110,16 @@
             text-align: right;
             padding-top: 15px;
         }
-
-        .section-title {
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        @media print {
-            .btn {
-                display: none;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="app-container" id="appContainer">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon">K</div>
-                <div class="logo-text">& D Minibar</div>
-            </div>
-        </div>
+        <div class="header">K&D Minibar Management</div>
 
         <div class="content">
             <div class="form-group">
                 <label for="villa">Výběr vily</label>
-                <select id="villa" onchange="updateVillaItems()">
+                <select id="villa" onchange="updateVillaSettings()">
                     <option value="oh-yeah">OH YEAH VILLA</option>
                     <option value="little-castle">LITTLE CASTLE</option>
                     <option value="amazing-pool">AMAZING POOL</option>
@@ -191,6 +150,10 @@
                 <label for="malibu">Malibu (99 Kč)</label>
                 <input type="number" id="malibu" placeholder="0" min="0">
             </div>
+            <div class="form-group">
+                <label for="jack-cola">Jack s colou (99 Kč)</label>
+                <input type="number" id="jack-cola" placeholder="0" min="0">
+            </div>
             <div id="amazing-pool-items" style="display: none;">
                 <div class="form-group">
                     <label for="coca-cola">Coca-Cola (32 Kč)</label>
@@ -206,36 +169,48 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="email">E-mail pro odeslání faktury:</label>
-                <input type="email" id="email" placeholder="Zadejte email">
-            </div>
-
             <button class="btn" onclick="generateInvoice()">Generovat fakturu</button>
             <div id="invoiceContainer"></div>
         </div>
     </div>
 
     <script>
-        function updateVillaItems() {
+        let currentVilla = "OH YEAH VILLA"; // Defaultní vila
+
+        function updateVillaSettings() {
             const villa = document.getElementById("villa").value;
-            const poolItems = document.getElementById("amazing-pool-items");
-            poolItems.style.display = villa === "amazing-pool" ? "block" : "none";
+            const amazingPoolItems = document.getElementById("amazing-pool-items");
+            const appContainer = document.getElementById("appContainer");
+
+            if (villa === "oh-yeah") {
+                appContainer.style.background = "#FFC0CB";
+                amazingPoolItems.style.display = "none";
+                currentVilla = "OH YEAH VILLA";
+            } else if (villa === "little-castle") {
+                appContainer.style.background = "#ADD8E6";
+                amazingPoolItems.style.display = "none";
+                currentVilla = "LITTLE CASTLE";
+            } else if (villa === "amazing-pool") {
+                appContainer.style.background = "#90EE90";
+                amazingPoolItems.style.display = "block";
+                currentVilla = "AMAZING POOL";
+            }
         }
 
         function generateInvoice() {
-            const villa = document.getElementById("villa").value;
-            const exchangeRate = document.getElementById("exchange-rate").value;
-            const guests = document.getElementById("guests").value;
-            const nights = document.getElementById("nights").value;
+            const guests = parseInt(document.getElementById("guests").value) || 0;
+            const nights = parseInt(document.getElementById("nights").value) || 0;
 
-            let invoiceHTML = `<div class="invoice">
-                <h3>Faktura</h3>
-                <div class="invoice-item"><span>Vila:</span> <strong>${villa}</strong></div>
-                <div class="invoice-item"><span>Počet hostů:</span> ${guests}</div>
-                <div class="invoice-item"><span>Počet nocí:</span> ${nights}</div>
-                <div class="invoice-item"><span>Kurz:</span> ${exchangeRate} CZK/EUR</div>
-            </div>`;
+            let invoiceHTML = `
+                <div class="invoice">
+                    <h3>Faktura pro: ${currentVilla}</h3>
+                    <div class="invoice-item"><span>Počet hostů:</span><span>${guests}</span></div>
+                    <div class="invoice-item"><span>Počet nocí:</span><span>${nights}</span></div>
+                    <hr>
+                    <div class="invoice-total">Další výpočty...</div>
+                </div>
+            `;
+
             document.getElementById("invoiceContainer").innerHTML = invoiceHTML;
         }
     </script>
