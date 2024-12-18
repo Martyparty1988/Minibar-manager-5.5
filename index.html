@@ -9,35 +9,27 @@
             --primary-color: #FF385C;
             --secondary-color: #00A699;
             --background-color: #F7F7F7;
-            --text-color: #484848;
-            --oh-yeah-bg: #FFC0CB;
-            --little-castle-bg: #ADD8E6;
-            --amazing-pool-bg: #90EE90;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        html, body {
-            background-color: var(--background-color);
+            font-family: Arial, sans-serif;
         }
 
         body {
+            background-color: var(--background-color);
             overflow-y: scroll;
+            padding: 20px;
         }
 
         .app-container {
             max-width: 600px;
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
+            margin: 0 auto;
             background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .header {
@@ -154,7 +146,19 @@
                 <label for="jack-cola">Jack s colou (99 Kč)</label>
                 <input type="number" id="jack-cola" placeholder="0" min="0">
             </div>
-            <div id="amazing-pool-items" style="display: none;">
+            <div class="form-group">
+                <label for="moscow-mule">Moscow Mule (99 Kč)</label>
+                <input type="number" id="moscow-mule" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="gin-tonic">Gin-Tonic (99 Kč)</label>
+                <input type="number" id="gin-tonic" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="mojito">Mojito (99 Kč)</label>
+                <input type="number" id="mojito" placeholder="0" min="0">
+            </div>
+            <div id="extra-items" style="display: none;">
                 <div class="form-group">
                     <label for="coca-cola">Coca-Cola (32 Kč)</label>
                     <input type="number" id="coca-cola" placeholder="0" min="0">
@@ -168,6 +172,28 @@
                     <input type="number" id="red-bull" placeholder="0" min="0">
                 </div>
             </div>
+            <div class="form-group">
+                <label for="prosecco">Prosecco (390 Kč)</label>
+                <input type="number" id="prosecco" placeholder="0" min="0">
+            </div>
+
+            <div class="section-title">Položky v EUR</div>
+            <div class="form-group">
+                <label for="beer-30l">Pivo sud 30 l (125 €)</label>
+                <input type="number" id="beer-30l" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="beer-50l">Pivo sud 50 l (175 €)</label>
+                <input type="number" id="beer-50l" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="gas">Plyn (12 €)</label>
+                <input type="number" id="gas" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="wellness">Wellness (€)</label>
+                <input type="number" id="wellness" placeholder="Cena zadaná uživatelem" min="0">
+            </div>
 
             <button class="btn" onclick="generateInvoice()">Generovat fakturu</button>
             <div id="invoiceContainer"></div>
@@ -175,44 +201,29 @@
     </div>
 
     <script>
-        let currentVilla = "OH YEAH VILLA"; // Defaultní vila
+        let currentVilla = "OH YEAH VILLA";
 
         function updateVillaSettings() {
             const villa = document.getElementById("villa").value;
-            const amazingPoolItems = document.getElementById("amazing-pool-items");
-            const appContainer = document.getElementById("appContainer");
+            const extraItems = document.getElementById("extra-items");
 
-            if (villa === "oh-yeah") {
-                appContainer.style.background = "#FFC0CB";
-                amazingPoolItems.style.display = "none";
-                currentVilla = "OH YEAH VILLA";
-            } else if (villa === "little-castle") {
-                appContainer.style.background = "#ADD8E6";
-                amazingPoolItems.style.display = "none";
-                currentVilla = "LITTLE CASTLE";
-            } else if (villa === "amazing-pool") {
-                appContainer.style.background = "#90EE90";
-                amazingPoolItems.style.display = "block";
+            if (villa === "amazing-pool") {
+                extraItems.style.display = "block";
                 currentVilla = "AMAZING POOL";
+            } else {
+                extraItems.style.display = "none";
+                currentVilla = villa === "little-castle" ? "LITTLE CASTLE" : "OH YEAH VILLA";
             }
         }
 
         function generateInvoice() {
             const guests = parseInt(document.getElementById("guests").value) || 0;
             const nights = parseInt(document.getElementById("nights").value) || 0;
+            const cityTax = guests * nights * 2;
 
-            let invoiceHTML = `
+            const invoiceHTML = `
                 <div class="invoice">
                     <h3>Faktura pro: ${currentVilla}</h3>
-                    <div class="invoice-item"><span>Počet hostů:</span><span>${guests}</span></div>
-                    <div class="invoice-item"><span>Počet nocí:</span><span>${nights}</span></div>
+                    <div class="invoice-item"><span>City Tax:</span><span>${cityTax} €</span></div>
                     <hr>
-                    <div class="invoice-total">Další výpočty...</div>
-                </div>
-            `;
-
-            document.getElementById("invoiceContainer").innerHTML = invoiceHTML;
-        }
-    </script>
-</body>
-</html>
+                   
