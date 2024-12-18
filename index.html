@@ -21,15 +21,16 @@
         }
 
         html, body {
-            height: 100%;
             background-color: var(--background-color);
-            overscroll-behavior-y: none;
+        }
+
+        body {
+            overflow-y: scroll;
         }
 
         .app-container {
             max-width: 600px;
             margin: 0 auto;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             background-color: white;
@@ -44,6 +45,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .logo {
@@ -70,8 +74,6 @@
         }
 
         .content {
-            flex-grow: 1;
-            overflow-y: auto;
             padding: 20px;
         }
 
@@ -138,6 +140,12 @@
             font-weight: bold;
             color: var(--primary-color);
         }
+
+        @media print {
+            .btn {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -152,7 +160,7 @@
         <div class="content">
             <div class="form-group">
                 <label for="villa">Výběr vily</label>
-                <select id="villa" onchange="changeVillaStyle()">
+                <select id="villa" onchange="updateVillaItems()">
                     <option value="oh-yeah">OH YEAH VILLA</option>
                     <option value="little-castle">LITTLE CASTLE</option>
                     <option value="amazing-pool">AMAZING POOL</option>
@@ -183,55 +191,24 @@
                 <label for="malibu">Malibu (99 Kč)</label>
                 <input type="number" id="malibu" placeholder="0" min="0">
             </div>
-            <div class="form-group">
-                <label for="jack-s-colou">Jack s colou (99 Kč)</label>
-                <input type="number" id="jack-s-colou" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="moscow-mule">Moscow Mule (99 Kč)</label>
-                <input type="number" id="moscow-mule" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="gin-tonic">Gin-Tonic (99 Kč)</label>
-                <input type="number" id="gin-tonic" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="mojito">Mojito (99 Kč)</label>
-                <input type="number" id="mojito" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="coca-cola">Coca-Cola (32 Kč)</label>
-                <input type="number" id="coca-cola" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="sprite">Sprite (32 Kč)</label>
-                <input type="number" id="sprite" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="red-bull">Red Bull (59 Kč)</label>
-                <input type="number" id="red-bull" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="prosecco">Prosecco (390 Kč)</label>
-                <input type="number" id="prosecco" placeholder="0" min="0">
+            <div id="amazing-pool-items" style="display: none;">
+                <div class="form-group">
+                    <label for="coca-cola">Coca-Cola (32 Kč)</label>
+                    <input type="number" id="coca-cola" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="sprite">Sprite (32 Kč)</label>
+                    <input type="number" id="sprite" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="red-bull">Red Bull (59 Kč)</label>
+                    <input type="number" id="red-bull" placeholder="0" min="0">
+                </div>
             </div>
 
-            <div class="section-title">Položky v EUR</div>
             <div class="form-group">
-                <label for="beer-30l">Pivo sud 30l (125 €)</label>
-                <input type="number" id="beer-30l" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="beer-50l">Pivo sud 50l (175 €)</label>
-                <input type="number" id="beer-50l" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="gas">Plyn (12 €)</label>
-                <input type="number" id="gas" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label for="wellness">Wellness (vlastní cena v €)</label>
-                <input type="number" id="wellness" placeholder="0" min="0">
+                <label for="email">E-mail pro odeslání faktury:</label>
+                <input type="email" id="email" placeholder="Zadejte email">
             </div>
 
             <button class="btn" onclick="generateInvoice()">Generovat fakturu</button>
@@ -239,131 +216,27 @@
         </div>
     </div>
 
-    <!-- jsPDF z CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        function changeVillaStyle() {
-            const villa = document.getElementById('villa').value;
-            const appContainer = document.getElementById('appContainer');
-            if (villa === 'oh-yeah') {
-                appContainer.style.backgroundColor = '#FFC0CB'; // růžová
-            } else if (villa === 'little-castle') {
-                appContainer.style.backgroundColor = '#ADD8E6'; // světle modrá
-            } else if (villa === 'amazing-pool') {
-                appContainer.style.backgroundColor = '#90EE90'; // světle zelená
-            }
+        function updateVillaItems() {
+            const villa = document.getElementById("villa").value;
+            const poolItems = document.getElementById("amazing-pool-items");
+            poolItems.style.display = villa === "amazing-pool" ? "block" : "none";
         }
 
         function generateInvoice() {
-            const exchangeRate = parseFloat(document.getElementById('exchange-rate').value);
-            const guests = parseInt(document.getElementById('guests').value,10);
-            const nights = parseInt(document.getElementById('nights').value,10);
+            const villa = document.getElementById("villa").value;
+            const exchangeRate = document.getElementById("exchange-rate").value;
+            const guests = document.getElementById("guests").value;
+            const nights = document.getElementById("nights").value;
 
-            // Položky v CZK
-            const czkItems = [
-                {id:'budvar', name:'Budvar', price:59},
-                {id:'malibu', name:'Malibu', price:99},
-                {id:'jack-s-colou', name:'Jack s colou', price:99},
-                {id:'moscow-mule', name:'Moscow Mule', price:99},
-                {id:'gin-tonic', name:'Gin-Tonic', price:99},
-                {id:'mojito', name:'Mojito', price:99},
-                {id:'coca-cola', name:'Coca-Cola', price:32},
-                {id:'sprite', name:'Sprite', price:32},
-                {id:'red-bull', name:'Red Bull', price:59},
-                {id:'prosecco', name:'Prosecco', price:390}
-            ];
-
-            // Položky v EUR
-            const eurItems = [
-                {id:'beer-30l', name:'Pivo sud 30l', price:125},
-                {id:'beer-50l', name:'Pivo sud 50l', price:175},
-                {id:'gas', name:'Plyn', price:12},
-                {id:'wellness', name:'Wellness', priceVariable:true}
-            ];
-
-            let totalCZK = 0;
-            let totalEUR = 0;
-
-            // Vyčteme hodnoty z formuláře a spočítáme sumu
-            czkItems.forEach(item => {
-                const qty = parseInt(document.getElementById(item.id).value,10) || 0;
-                totalCZK += qty * item.price;
-            });
-
-            eurItems.forEach(item => {
-                const qty = parseInt(document.getElementById(item.id).value,10) || 0;
-                if(item.priceVariable) {
-                    // wellness má vlastní zadání v poli price, tady price ignorujeme a bereme zadanou hodnotu
-                    totalEUR += qty; 
-                } else {
-                    totalEUR += qty * item.price;
-                }
-            });
-
-            // Po spočtení nabídneme, v jaké měně to chceme
-            let convertToEUR = confirm("Chcete převést konečnou částku do EUR?");
-            let finalAmountText = "";
-            let finalAmount = 0;
-            if(convertToEUR) {
-                // Převést všechno do EUR
-                const czkInEur = totalCZK / exchangeRate;
-                finalAmount = czkInEur + totalEUR;
-                finalAmountText = "Celková částka: " + finalAmount.toFixed(2) + " EUR";
-            } else {
-                // Převést všechno do CZK
-                const eurInCzk = totalEUR * exchangeRate;
-                finalAmount = totalCZK + eurInCzk;
-                finalAmountText = "Celková částka: " + finalAmount.toFixed(2) + " CZK";
-            }
-
-            // Vygenerujeme HTML faktury
-            let invoiceHTML = '<div class="invoice">';
-            invoiceHTML += '<h3>Faktura</h3>';
-            invoiceHTML += '<div class="invoice-item"><span>Počet hostů: '+guests+'</span></div>';
-            invoiceHTML += '<div class="invoice-item"><span>Počet nocí: '+nights+'</span></div>';
-
-            invoiceHTML += '<div class="invoice-item" style="border-top:1px solid #DBDBDB;"><strong>Položky v CZK</strong></div>';
-            czkItems.forEach(item => {
-                const qty = parseInt(document.getElementById(item.id).value,10) || 0;
-                if(qty > 0) {
-                    invoiceHTML += '<div class="invoice-item"><span>'+item.name+' ('+item.price+' Kč)</span><span>'+qty+' ks</span><span>'+ (item.price*qty)+' Kč</span></div>';
-                }
-            });
-
-            invoiceHTML += '<div class="invoice-item" style="border-top:1px solid #DBDBDB;"><strong>Položky v EUR</strong></div>';
-            eurItems.forEach(item => {
-                const qty = parseInt(document.getElementById(item.id).value,10) || 0;
-                if(qty > 0) {
-                    let priceText = "";
-                    let lineAmount = 0;
-                    if(item.priceVariable) {
-                        // wellness
-                        lineAmount = qty; 
-                        priceText = qty+' €';
-                    } else {
-                        priceText = item.price+' €';
-                        lineAmount = qty * item.price;
-                    }
-                    invoiceHTML += '<div class="invoice-item"><span>'+item.name+' ('+priceText+')</span><span>'+qty+' ks</span><span>'+ lineAmount+' €</span></div>';
-                }
-            });
-
-            invoiceHTML += '<div class="invoice-total">'+finalAmountText+'</div>';
-            invoiceHTML += '<button class="btn" onclick="generatePDF(\''+finalAmountText+'\')">Stáhnout PDF</button>';
-            invoiceHTML += '</div>';
-
-            document.getElementById('invoiceContainer').innerHTML = invoiceHTML;
-        }
-
-        async function generatePDF(finalAmountText) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Pro jednoduchost jen text faktury, v reálném nasazení by se generoval plnohodnotný layout
-            doc.text("Faktura", 10, 10);
-            doc.text(finalAmountText, 10, 20);
-
-            doc.save("faktura.pdf");
+            let invoiceHTML = `<div class="invoice">
+                <h3>Faktura</h3>
+                <div class="invoice-item"><span>Vila:</span> <strong>${villa}</strong></div>
+                <div class="invoice-item"><span>Počet hostů:</span> ${guests}</div>
+                <div class="invoice-item"><span>Počet nocí:</span> ${nights}</div>
+                <div class="invoice-item"><span>Kurz:</span> ${exchangeRate} CZK/EUR</div>
+            </div>`;
+            document.getElementById("invoiceContainer").innerHTML = invoiceHTML;
         }
     </script>
 </body>
