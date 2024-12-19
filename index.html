@@ -34,8 +34,6 @@
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            animation: fadeIn 0.5s ease-in-out;
         }
 
         .header {
@@ -116,13 +114,17 @@
             transform: scale(0.98);
         }
 
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .invoice {
             margin-top: 20px;
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 12px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.5s ease;
         }
 
         .invoice h3 {
@@ -155,26 +157,6 @@
 
             .btn {
                 font-size: 16px;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
             }
         }
     </style>
@@ -217,10 +199,7 @@
                 <button class="btn" onclick="generateInvoice()">Generate Invoice</button>
             </div>
             <div class="form-group">
-                <button class="btn" onclick="applyDiscount()">Apply 10% Discount</button>
-            </div>
-            <div class="form-group">
-                <button class="btn" onclick="saveAsImage()">Save as JPEG</button>
+                <button class="btn" id="discountButton" onclick="applyDiscount()">Apply 10% Discount</button>
             </div>
             <div id="invoiceContainer"></div>
         </div>
@@ -272,7 +251,9 @@
             ]
         };
 
-        async function updateVilla() {
+        let discountApplied = false;
+
+        function updateVilla() {
             const villa = document.getElementById("villa").value;
             const body = document.body;
 
@@ -308,7 +289,9 @@
             const nights = parseInt(document.getElementById("nights").value) || 0;
             const cityTax = guests * nights * 2;
 
-            let totalCZK = 0, totalEUR = 0;
+            let totalCZK = 0;
+            let totalEUR = 0;
+            let discountAmountCZK = 0;
             let itemsPurchased = [];
 
             items[villa].forEach(item => {
@@ -324,6 +307,11 @@
                 }
             });
 
+            if (discountApplied) {
+                discountAmountCZK = totalCZK * 0.1;
+                totalCZK *= 0.9;
+            }
+
             const invoiceContainer = document.getElementById("invoiceContainer");
             invoiceContainer.innerHTML = `
                 <div class="invoice">
@@ -334,37 +322,25 @@
                         ${itemsPurchased.map(item => `<li>${item}</li>`).join("")}
                     </ul>
                     <div class="invoice-item"><span>City Tax:</span><span>${cityTax.toFixed(2)} €</span></div>
+                    ${
+                        discountApplied
+                            ? `<div class="invoice-item"><span>Discount:</span><span>- ${discountAmountCZK.toFixed(2)} Kč</span></div>`
+                            : ""
+                    }
                     <div class="invoice-total">Grand Total: ${totalCZK.toFixed(2)} Kč / ${(totalEUR + cityTax).toFixed(2)} €</div>
                 </div>
             `;
         }
 
         function applyDiscount() {
-            const invoice = document.querySelector(".invoice");
-            if (invoice) {
-                const totalElement = invoice.querySelector(".invoice-total");
-                const totalText = totalElement.textContent.match(/[\d.]+/g);
-                const totalCZK = parseFloat(totalText[0]) * 0.9;
-                const totalEUR = parseFloat(totalText[1]);
-                totalElement.textContent = `Grand Total after Discount: ${totalCZK.toFixed(2)} Kč / ${totalEUR.toFixed(2)} €`;
+            if (!discountApplied) {
+                discountApplied = true;
+                document.getElementById("discountButton").disabled = true;
+                generateInvoice();
             }
         }
 
-        function saveAsImage() {
-            const invoice = document.querySelector(".invoice");
-            if (invoice) {
-                html2canvas(invoice).then(canvas => {
-                    const link = document.createElement("a");
-                    link.download = "invoice.jpeg";
-                    link.href = canvas.toDataURL("image/jpeg");
-                    link.click();
-                });
-            }
-        }
-
-        // Initial setup
         updateVilla();
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
