@@ -251,6 +251,7 @@
             ]
         };
 
+        let exchangeRate = 24; // CZK/EUR exchange rate
         let discountApplied = false;
 
         function updateVilla() {
@@ -290,17 +291,20 @@
             const cityTax = guests * nights * 2;
 
             let totalCZK = 0;
-            let totalEUR = 0;
-            let discountAmountCZK = 0;
+            let totalEUR = cityTax; // Start with City Tax in EUR
             let itemsPurchased = [];
+            let discountAmountCZK = 0;
 
             items[villa].forEach(item => {
                 const count = parseInt(document.getElementById(item.name)?.value) || 0;
                 if (count > 0) {
                     const itemTotalCZK = item.priceCZK ? count * item.priceCZK : 0;
                     const itemTotalEUR = item.priceEUR ? count * item.priceEUR : 0;
+
                     itemsPurchased.push(
-                        `${count} x ${item.name} - ${itemTotalCZK ? itemTotalCZK + " Kč" : itemTotalEUR + " €"}`
+                        `${count} x ${item.name} - ${
+                            itemTotalCZK ? itemTotalCZK + " Kč" : itemTotalEUR + " €"
+                        }`
                     );
                     totalCZK += itemTotalCZK;
                     totalEUR += itemTotalEUR;
@@ -308,9 +312,12 @@
             });
 
             if (discountApplied) {
-                discountAmountCZK = totalCZK * 0.1;
+                discountAmountCZK = totalCZK * 0.1; // 10% discount on total CZK (excluding City Tax)
                 totalCZK *= 0.9;
             }
+
+            const grandTotalEUR = totalEUR + totalCZK / exchangeRate;
+            const grandTotalCZK = totalCZK + totalEUR * exchangeRate;
 
             const invoiceContainer = document.getElementById("invoiceContainer");
             invoiceContainer.innerHTML = `
@@ -320,14 +327,18 @@
                     <p><strong>Date:</strong> ${new Date().toLocaleDateString("cs-CZ")}</p>
                     <ul>
                         ${itemsPurchased.map(item => `<li>${item}</li>`).join("")}
+                        <li>City tax - ${cityTax.toFixed(2)} €</li>
                     </ul>
-                    <div class="invoice-item"><span>City Tax:</span><span>${cityTax.toFixed(2)} €</span></div>
                     ${
                         discountApplied
-                            ? `<div class="invoice-item"><span>Discount:</span><span>- ${discountAmountCZK.toFixed(2)} Kč</span></div>`
+                            ? `<div class="invoice-item"><span>Discount:</span><span>- ${discountAmountCZK.toFixed(
+                                  2
+                              )} Kč</span></div>`
                             : ""
                     }
-                    <div class="invoice-total">Grand Total: ${totalCZK.toFixed(2)} Kč / ${(totalEUR + cityTax).toFixed(2)} €</div>
+                    <div class="invoice-total">Grand Total: ${grandTotalCZK.toFixed(2)} Kč / ${grandTotalEUR.toFixed(
+                2
+            )} €</div>
                 </div>
             `;
         }
