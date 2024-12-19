@@ -251,8 +251,19 @@
             ]
         };
 
-        let exchangeRate = 24; // CZK/EUR exchange rate
+        let exchangeRate = 24; // Default rate
         let discountApplied = false;
+
+        async function fetchExchangeRate() {
+            try {
+                const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
+                const data = await response.json();
+                exchangeRate = data.rates.CZK;
+                console.log(`Aktualizovaný kurz: 1 EUR = ${exchangeRate} CZK`);
+            } catch (error) {
+                console.error("Nepodařilo se načíst aktuální kurz. Používá se výchozí hodnota.");
+            }
+        }
 
         function updateVilla() {
             const villa = document.getElementById("villa").value;
@@ -351,6 +362,8 @@
             }
         }
 
+        // Načtení kurzu při spuštění
+        fetchExchangeRate();
         updateVilla();
     </script>
 </body>
