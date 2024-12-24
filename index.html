@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K&D Rezervace</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --primary-color: #FF385C;
@@ -77,6 +76,24 @@
             margin-top: 15px;
             text-align: right;
         }
+
+        .items-container {
+            margin-top: 20px;
+        }
+
+        .item-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .item-group label {
+            flex: 1;
+        }
+
+        .item-group input {
+            flex: 0.3;
+        }
     </style>
 </head>
 <body>
@@ -84,7 +101,7 @@
         <h1>K&D Rezervace</h1>
 
         <label for="villa">Vyberte vilu:</label>
-        <select id="villa" onchange="displayWellnessInput()">
+        <select id="villa" onchange="updateItems()">
             <option value="oh-yeah">Oh Yeah Villa</option>
             <option value="little-castle">The Little Castle</option>
             <option value="amazing-pool">Amazing Pool</option>
@@ -96,14 +113,10 @@
         <label for="nights">Počet nocí:</label>
         <input type="number" id="nights" placeholder="Zadejte počet nocí" min="1">
 
-        <label for="wellness">Cena Wellness (€):</label>
-        <input type="number" id="wellness" placeholder="Zadejte cenu Wellness" min="0">
+        <div id="items-container" class="items-container"></div>
 
-        <label for="currency">Zvolte měnu:</label>
-        <select id="currency" onchange="generateInvoice()">
-            <option value="CZK" selected>CZK</option>
-            <option value="EUR">EUR</option>
-        </select>
+        <label for="discount">10% Sleva:</label>
+        <input type="checkbox" id="discount">
 
         <button onclick="generateInvoice()">Generovat fakturu</button>
 
@@ -154,48 +167,71 @@
             ]
         };
 
+        function updateItems() {
+            const villa = document.getElementById("villa").value;
+            const container = document.getElementById("items-container");
+            container.innerHTML = "";
+
+            items[villa].forEach(item => {
+                const group = document.createElement("div");
+                group.classList.add("item-group");
+                group.innerHTML = `
+                    <label>${item.name} - ${item.priceCZK ? item.priceCZK + " Kč" : item.priceEUR + " €"}</label>
+                    <input type="number" id="${item.name}" placeholder="Množství" min="0">
+                `;
+                container.appendChild(group);
+            });
+        }
+
         function generateInvoice() {
             const villa = document.getElementById("villa").value;
             const guests = parseInt(document.getElementById("guests").value) || 0;
             const nights = parseInt(document.getElementById("nights").value) || 0;
-            const currency = document.getElementById("currency").value;
-            const wellnessPrice = parseFloat(document.getElementById("wellness").value) || 0;
+            const discount = document.getElementById("discount").checked;
 
             let totalCZK = 0;
-            let totalEUR = wellnessPrice;
+            let totalEUR = 0;
             let itemsPurchased = [];
+            const cityTax = guests * nights * 2; // City Tax v EUR
 
             items[villa].forEach(item => {
-                if (item.priceCZK) {
-                    totalCZK += item.priceCZK;
-                    itemsPurchased.push(`${item.name} - ${item.priceCZK} Kč`);
-                } else if (item.priceEUR) {
-                    totalEUR += item.priceEUR;
-                    itemsPurchased.push(`${item.name} - ${item.priceEUR} €`);
+                const quantity = parseInt(document.getElementById(item.name)?.value) || 0;
+                if (quantity > 0) {
+                    if (item.priceCZK) {
+                        const itemTotalCZK = quantity * item.priceCZK;
+                        totalCZK += itemTotalCZK;
+                        itemsPurchased.push(`${quantity} x ${item.name} - ${itemTotalCZK} Kč`);
+                    } else if (item.priceEUR) {
+                        const itemTotalEUR = quantity * item.priceEUR;
+                        totalEUR += itemTotalEUR;
+                        itemsPurchased.push(`${quantity} x ${item.name} - ${itemTotalEUR} €`);
+                    }
                 }
             });
 
-            const cityTax = guests * nights * 2; // City tax v EUR
-            totalEUR += cityTax;
-            totalCZK += totalEUR * exchangeRate;
+            if (discount) {
+                totalCZK *= 0.9;
+                totalEUR *= 0.9;
+            }
 
-            const total = currency === "CZK" 
-                ? `${totalCZK.toFixed(2)} Kč` 
-                : `${totalEUR.toFixed(2)} €`;
+            const grandTotalCZK = totalCZK + totalEUR * exchangeRate;
+            const grandTotalEUR = totalEUR + cityTax;
 
-            document.getElementById("invoiceContainer").innerHTML = `
+            const invoiceContainer = document.getElementById("invoiceContainer");
+            invoiceContainer.innerHTML = `
                 <div class="invoice">
                     <h3>Faktura</h3>
                     <p>Vila: ${villa}</p>
-                    <p>Hosté: ${guests}, Noci: ${nights}</p>
                     <ul>
                         ${itemsPurchased.map(item => `<li>${item}</li>`).join('')}
                         <li>Městská daň: ${cityTax.toFixed(2)} €</li>
                     </ul>
-                    <div class="invoice-total">Celkem: ${total}</div>
+                    <div class="invoice-total">Celkem: ${grandTotalCZK.toFixed(2)} Kč / ${grandTotalEUR.toFixed(2)} €</div>
                 </div>
             `;
         }
+
+        updateItems(); // Pro inicializaci položek při načtení stránky
     </script>
 </body>
 </html>
